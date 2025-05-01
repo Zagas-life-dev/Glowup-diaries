@@ -85,7 +85,13 @@ export default function EventsPage() {
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.is_free.toString().includes(searchQuery.toLowerCase())||
+    event.location_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (searchQuery.toLowerCase() === 'free' && event.is_free) ||
+    (searchQuery.toLowerCase() === 'paid' && !event.is_free) ||
+    (searchQuery.toLowerCase() === 'fre' && event.is_free) ||
+    (searchQuery.toLowerCase() === 'pai' && !event.is_free) ||
+    (searchQuery.toLowerCase() === 'fr' && event.is_free) ||
+    (searchQuery.toLowerCase() === 'pa' && !event.is_free) ||
     new Date(event.date).toLocaleString(undefined, {dateStyle: 'full'}).toLowerCase().includes(searchQuery.toLowerCase()) 
 
     if (!matchesSearch) return false
@@ -116,9 +122,9 @@ export default function EventsPage() {
         case 'paid':
           return !event.is_free
         case 'in-person':
-          return event.location_type === 'in-person'
+          return event.location_type === 'physical' 
         case 'virtual':
-          return event.location_type === 'virtual'
+          return event.location_type === 'online' || event.location_type === 'hybrid'
         default:
           return true
       }
