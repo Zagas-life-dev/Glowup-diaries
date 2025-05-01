@@ -11,7 +11,12 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Glow Up Diaries",
   description: "Connect young ambitious people to opportunities, events, and free resources.",
-    generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: '/images/logo-icon-transparent (2).png',
+    shortcut: '/images/logo-icon-transparent (2).png',
+    apple: '/images/logo-icon-transparent (2).png',
+  }
 }
 
 export default function RootLayout({

@@ -20,6 +20,7 @@ interface Opportunity {
   is_free: boolean
   featured: boolean
   created_at: string
+  link: string
 }
 
 export default function OpportunitiesPage() {
@@ -231,8 +232,10 @@ export default function OpportunitiesPage() {
                   </CardContent>
                   <CardFooter>
                     <Link 
-                      href={`/opportunities/${opportunity.id}`}
+                      href={opportunity.link}
                       className="w-full"
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
                       <Button className="w-full bg-brand-orange hover:bg-brand-orange/90 text-white">
                         Learn More

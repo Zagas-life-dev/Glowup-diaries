@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, X, Edit, Trash, Plus } from "lucide-react"
+import { Check, X, Edit, Trash, Plus, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { getSupabaseBrowserClient } from "@/lib/supabase"
 import { AdminLoading } from "@/components/admin/loading"
 import { isBefore, parseISO } from 'date-fns'
+import { cn } from "@/lib/utils"
 
 interface Submission {
   id: string
@@ -242,10 +243,8 @@ export default function OpportunitiesPage() {
 
       if (error) throw error;
 
-      setPublishedOpportunities(
-        publishedOpportunities.map((o) =>
-          o.id === id ? { ...o, featured: !o.featured } : o.featured ? { ...o, featured: false } : o,
-        ),
+      setPublishedOpportunities(opportunities =>
+        opportunities.map(o => o.id === id ? { ...o, featured: !o.featured } : o)
       );
 
       toast({
@@ -256,9 +255,8 @@ export default function OpportunitiesPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update featured status",
+        description: error.message || "Failed to update featured status",
       });
-      console.error('Error updating featured status:', error);
     }
   };
 
@@ -386,10 +384,14 @@ export default function OpportunitiesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-1"
+                      className={cn(
+                        "flex items-center gap-1",
+                        opportunity.featured ? "bg-amber-100 hover:bg-amber-200" : "hover:bg-amber-100"
+                      )}
                       onClick={() => toggleFeature(opportunity.id)}
                     >
-                      {opportunity.featured ? "Unfeature" : "Feature"}
+                      <Star className={cn("h-4 w-4", opportunity.featured ? "fill-amber-500" : "")} />
+                      <span>{opportunity.featured ? "Unfeature" : "Feature"}</span>
                     </Button>
                     <Button
                       variant="destructive"

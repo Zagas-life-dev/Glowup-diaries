@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Check, X, Edit, Trash, Plus } from "lucide-react"
+import { Check, X, Edit, Trash, Plus, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast"
 import { getSupabaseBrowserClient } from "@/lib/supabase"
 import { AdminLoading } from "@/components/admin/loading"
 import { isBefore, parseISO } from 'date-fns'
+import { cn } from "@/lib/utils"
 
 interface Event {
   id: string;
@@ -387,6 +388,18 @@ export default function EventsPage() {
                     >
                       <Edit className="h-4 w-4" />
                       <span>Edit</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "flex items-center gap-1",
+                        event.featured ? "bg-amber-100 hover:bg-amber-200" : "hover:bg-amber-100"
+                      )}
+                      onClick={() => toggleFeature(event.id)}
+                    >
+                      <Star className={cn("h-4 w-4", event.featured ? "fill-amber-500" : "")} />
+                      <span>{event.featured ? "Unfeature" : "Feature"}</span>
                     </Button>
                     <Button
                       variant="destructive"
