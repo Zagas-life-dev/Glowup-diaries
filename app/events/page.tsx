@@ -164,9 +164,7 @@ export default function EventsPage() {
                 onFilterChange={handleFilterChange}
                 onClearFilters={clearFilters}
               />
-              <Button asChild className="bg-brand-orange hover:bg-brand-orange/90 text-white">
-                <Link href="/submit?type=event">Submit Your Event</Link>
-              </Button>
+              
             </div>
             <SelectedFilters
               selectedFilters={selectedFilters}

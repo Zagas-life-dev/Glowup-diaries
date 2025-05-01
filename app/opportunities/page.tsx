@@ -163,9 +163,7 @@ export default function OpportunitiesPage() {
                 onFilterChange={handleFilterChange}
                 onClearFilters={clearFilters}
               />
-              <Button asChild className="bg-brand-orange hover:bg-brand-orange/90 text-white">
-                <Link href="/submit?type=opportunity">Submit Opportunity</Link>
-              </Button>
+              
             </div>
             <SelectedFilters
               selectedFilters={selectedFilters}
