@@ -6,6 +6,7 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@vercel/analytics/react"
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -34,6 +35,7 @@ export default function RootLayout({
             <Analytics />
             <main className="flex-1">{children}</main>
             <Footer />
+            <Toaster position="top-center" />
           </div>
         </ThemeProvider>
       </body>

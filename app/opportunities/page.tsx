@@ -23,12 +23,22 @@ interface Opportunity {
   link: string
 }
 
+const opportunityTypes = [
+  'scholarship',
+  'fellowship',
+  'internship',
+  'grant',
+  'competition',
+  'mentorship',
+] as const;
+
 export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set())
-  
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+
   const supabase = getSupabaseBrowserClient()
 
   const filterOptions: FilterOption[] = [
@@ -91,6 +101,11 @@ export default function OpportunitiesPage() {
 
     if (!matchesSearch) return false
 
+    // Type filter
+    if (selectedType && opportunity.category.toLowerCase() !== selectedType.toLowerCase()) {
+      return false
+    }
+
     // If no filters are selected, show all opportunities that match search
     if (selectedFilters.size === 0) return true
 
@@ -146,6 +161,27 @@ export default function OpportunitiesPage() {
       <section className="py-8 bg-white">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col gap-4 mb-8">
+            {/* Add opportunity type filter buttons */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={selectedType === null ? "default" : "outline"}
+                onClick={() => setSelectedType(null)}
+                className="rounded-full"
+              >
+                All
+              </Button>
+              {opportunityTypes.map((type) => (
+                <Button
+                  key={type}
+                  variant={selectedType === type ? "default" : "outline"}
+                  onClick={() => setSelectedType(type)}
+                  className="rounded-full capitalize"
+                >
+                  {type}
+                </Button>
+              ))}
+            </div>
+
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

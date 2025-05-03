@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <div className="mb-4">
-              <Image src="/images/logo-transparent.png" alt="Glow Up Diaries" width={180} height={50} />
+              <Image src="/images/logo-transparent.png" alt="Glow Up Diaries" width={120} height={50} />
             </div>
             <p className="text-sm text-gray-400">
               Connect young ambitious people to opportunities, events, and free resources.
@@ -87,7 +87,7 @@ export default function Footer() {
 
         <div className="mt-10 border-t border-gray-800 pt-6 text-center">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Glow Up Diaries. All rights reserved.
+            &copy; {new Date().getFullYear()} Glow Up Diaries. All rights reserved. This is a subsidiary of Outsidee Solutions Ltd
           </p>
         </div>
       </div>

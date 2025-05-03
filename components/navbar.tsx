@@ -26,8 +26,8 @@ export default function Navbar() {
           <Image
             src="/images/logo-transparent.png"
             alt="Glow Up Diaries"
-            width={180}
-            height={50}
+            width={120}
+            height={30}
             className="mix-blend-normal"
           />
         </Link>

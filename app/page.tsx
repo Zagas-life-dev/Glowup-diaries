@@ -43,10 +43,10 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="bg-black text-white py-0 md:py-24">
-        <div className="container px-2 md:px-6">
+      <section className="bg-black text-white py-12 md:py-24">
+        <div className="container px-4 md:px-12">
           <div className="flex flex-col items-center text-center space-y-8">
-            <Image src="/images/logo-transparent.png" alt="Glow Up Diaries" width={450} height={0} className="mb-1" />
+            <Image src="/images/logo-transparent.png" alt="Glow Up Diaries" width={300} height={0} className="mb-1 space-24" />
 
             <h1 className="text-3xl md:text-5xl font-bold tracking-tighter">
               Find Opportunities. Access Resources. Glow Up.

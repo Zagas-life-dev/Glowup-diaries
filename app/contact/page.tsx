@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Instagram, Linkedin, Mail, MessageSquare } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
 import { getSupabaseBrowserClient } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -39,17 +39,14 @@ export default function ContactPage() {
 
       if (error) throw error
 
-      toast({
-        title: "Message sent!",
-        description: "Thank you for your feedback. We'll get back to you soon.",
+      toast.success("Message sent successfully!", {
+        description: "Thank you for your feedback. We'll get back to you soon."
       })
 
       setFormData({ name: "", email: "", message: "" })
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to send message. Please try again.",
+      toast.error("Error", {
+        description: error.message || "Failed to send message. Please try again."
       })
     } finally {
       setIsSubmitting(false)

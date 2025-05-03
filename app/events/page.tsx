@@ -116,7 +116,9 @@ export default function EventsPage() {
           return eventDate.getMonth() === nextMonth.getMonth() &&
                  eventDate.getFullYear() === nextMonth.getFullYear()
         case 'future':
-          return eventDate > today
+          const future = new Date(today.getFullYear(), today.getMonth() + 2)
+          return eventDate.getMonth() === future.getMonth() &&
+                 eventDate.getFullYear() === future.getFullYear()
         case 'free':
           return event.is_free
         case 'paid':
