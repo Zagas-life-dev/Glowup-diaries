@@ -266,7 +266,7 @@ export default function OpportunitiesPage() {
                   </CardContent>
                   <CardFooter>
                     <Link 
-                      href={opportunity.link}
+                      href={opportunity.link.startsWith("http") ? opportunity.link : `https://${opportunity.link}`}
                       className="w-full"
                       target="_blank"
                       rel="noopener noreferrer"
