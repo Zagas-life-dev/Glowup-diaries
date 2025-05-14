@@ -28,7 +28,6 @@ interface OpportunityFormData {
   eligibility: string;
   category: string;
   link: string;
-  is_free: boolean;
   featured: boolean;
 }
 
@@ -53,7 +52,6 @@ export default function NewOpportunityPage() {
     eligibility: "",
     category: "",
     link: "",
-    is_free: true,
     featured: false,
   })
   
@@ -232,25 +230,6 @@ export default function NewOpportunityPage() {
                 required
               />
             </div>
-
-            <div className="space-y-2">
-              <Label>Is it Free or Paid?</Label>
-              <RadioGroup
-                value={formData.is_free ? "free" : "paid"}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, is_free: value === "free" }))}
-                className="flex flex-col space-y-1"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="free" id="opportunity-free" />
-                  <Label htmlFor="opportunity-free">Free</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="paid" id="opportunity-paid" />
-                  <Label htmlFor="opportunity-paid">Paid</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
