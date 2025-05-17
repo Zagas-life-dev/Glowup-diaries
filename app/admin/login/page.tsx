@@ -1,27 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const LoginSignupPage = () => {
   const supabase = createClientComponentClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check for rate limits on page load
+  useEffect(() => {
+    const checkRateLimits = async () => {
+      try {
+        const { error } = await supabase.auth.getSession();
+        if (error && error.status === 429) {
+          console.log("Rate limit detected on initial load:", error);
+          setIsRateLimited(true);
+          setError("Request rate limit reached. Please wait a few minutes before trying again.");
+          toast.error("Rate limit reached", {
+            description: "Please wait a few minutes before trying again.",
+          });
+        }
+      } catch (err) {
+        console.error("Error checking session:", err);
+      }
+    };
+
+    checkRateLimits();
+  }, [supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Don't attempt login if we're rate limited
+      if (isRateLimited) {
+        setError("Please wait a few minutes before trying again due to rate limiting.");
+        return;
+      }
 
-    if (error) {
-      setError(error.message);
-    } else {
-      window.location.href = "/admin/dashboard";
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Login error:", error);
+        
+        if (error.status === 429) {
+          setIsRateLimited(true);
+          setError("Request rate limit reached. Please wait a few minutes before trying again.");
+          toast.error("Rate limit reached", {
+            description: "Please wait a few minutes before trying again.",
+          });
+        } else {
+          setError(error.message);
+        }
+      } else {
+        toast.success("Login successful", {
+          description: "Redirecting to dashboard...",
+        });
+        window.location.href = "/admin/dashboard";
+      }
+    } catch (err: any) {
+      console.error("Unexpected error during login:", err);
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -31,7 +84,18 @@ const LoginSignupPage = () => {
         <h2 className="text-2xl font-bold text-center">Welcome to Admin Portal</h2>
         <p className="text-center text-gray-600">Please log in or sign up to continue</p>
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+            {isRateLimited && (
+              <p className="mt-2 text-sm">
+                Rate limits are temporary and usually resolve within a few minutes.
+                Please wait before trying again.
+              </p>
+            )}
+          </Alert>
+        )}
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
@@ -45,6 +109,7 @@ const LoginSignupPage = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isRateLimited || isLoading}
             />
           </div>
 
@@ -59,20 +124,22 @@ const LoginSignupPage = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isRateLimited || isLoading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
+            disabled={isRateLimited || isLoading}
           >
-            Log In
+            {isLoading ? "Logging in..." : "Log In"}
           </button>
         </form>
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don’t have an account? <a href="../admin/signup" className="text-blue-600 hover:underline">Sign Up</a>
+            Don't have an account? <a href="../admin/signup" className="text-blue-600 hover:underline">Sign Up</a>
           </p>
         </div>
       </div>
