@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react" 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,7 +57,6 @@ export default function NewOpportunityPage() {
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [authError, setAuthError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = getSupabaseBrowserClient()
 
@@ -76,64 +75,19 @@ export default function NewOpportunityPage() {
     }
   }
 
-  useEffect(() => {
-    // Check if user is authenticated on component mount to detect rate limit issues early
-    const checkAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          if (error.status === 429) {
-            setAuthError("You've reached Supabase's rate limit. Please wait a few minutes before trying again.")
-            toast({
-              variant: "destructive",
-              title: "Rate Limit Reached",
-              description: "Too many requests to authentication service. Please wait a few minutes and try again.",
-            })
-          } else if (!data.session) {
-            // Redirect to login if not authenticated
-            router.push('/admin/login')
-          }
-        }
-      } catch (error: any) {
-        console.error("Auth check error:", error)
-      }
-    }
-    
-    checkAuth()
-  }, [router, supabase.auth])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    // If we're already rate limited, prevent additional requests
-    if (authError) {
-      setError("Please wait a few minutes before trying again due to rate limiting.")
-      setLoading(false)
-      return
-    }
-
     try {
-      // Log the data we're sending
-      console.log("Submitting opportunity data:", {
-        ...formData,
-        deadline: formData.deadline,
-        category: formData.category
-      })
-
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("opportunities")
         .insert(formData)
-        .select()
 
       if (insertError) {
-        console.error("Insert error details:", insertError)
         throw new Error(insertError.message)
       }
-      
-      console.log("Insert response:", data)
 
       toast({
         title: "Opportunity created",
@@ -142,16 +96,7 @@ export default function NewOpportunityPage() {
 
       router.push("/admin/opportunities")
     } catch (error: any) {
-      console.error("Full error object:", error)
-      
-      // Special handling for rate limit errors
-      if (error.message?.includes('rate limit') || error.status === 429) {
-        setAuthError("You've reached Supabase's rate limit. Please wait a few minutes before trying again.")
-        setError("Rate limit reached. Please wait a few minutes before trying again.")
-      } else {
-        setError(error.message || "Failed to create opportunity")
-      }
-      
+      setError(error.message || "Failed to create opportunity")
       toast({
         variant: "destructive",
         title: "Error",
@@ -186,16 +131,6 @@ export default function NewOpportunityPage() {
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {authError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <p>{authError}</p>
-                <p className="mt-2">Rate limits are usually temporary. Refreshing in a few minutes should solve this issue.</p>
-              </AlertDescription>
             </Alert>
           )}
 

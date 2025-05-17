@@ -5,8 +5,11 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 const LoginSignupPage = () => {
+  const searchParams = useSearchParams();
+  const errorType = searchParams.get("error");
   const supabase = createClientComponentClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,8 +17,21 @@ const LoginSignupPage = () => {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check for rate limits on page load
   useEffect(() => {
+    // Handle error parameters from middleware
+    if (errorType === "rate_limit") {
+      setIsRateLimited(true);
+      setError("Request rate limit reached. Please wait a few minutes before trying again.");
+      toast.error("Rate limit reached", {
+        description: "Please wait a few minutes before trying again.",
+      });
+    } else if (errorType === "too_many_auth_attempts") {
+      setError("Too many authentication attempts detected. This could be due to a network issue or browser configuration.");
+      toast.error("Authentication issue detected", {
+        description: "Please try clearing your cookies or using a different browser.",
+      });
+    }
+
     const checkRateLimits = async () => {
       try {
         const { error } = await supabase.auth.getSession();
@@ -32,8 +48,11 @@ const LoginSignupPage = () => {
       }
     };
 
-    checkRateLimits();
-  }, [supabase.auth]);
+    // Only check for rate limits if we haven't already detected one from URL params
+    if (!errorType) {
+      checkRateLimits();
+    }
+  }, [errorType, supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +73,7 @@ const LoginSignupPage = () => {
 
       if (error) {
         console.error("Login error:", error);
-        
+
         if (error.status === 429) {
           setIsRateLimited(true);
           setError("Request rate limit reached. Please wait a few minutes before trying again.");
