@@ -151,6 +151,8 @@ export default function OpportunitiesPage() {
     setProcessing((prev) => ({ ...prev, [id]: true }));
     
     try {
+      console.log("Approving submission:", id);
+      
       // Get the submission details
       const { data: submission, error: fetchError } = await supabase
         .from('submissions')
@@ -161,21 +163,33 @@ export default function OpportunitiesPage() {
       if (fetchError) throw fetchError;
       if (!submission) throw new Error('Submission not found');
 
-      // Insert into opportunities table
-      const { error: insertError } = await supabase
-        .from('opportunities')
-        .insert({
-          title: submission.title,
-          description: submission.description,
-          deadline: submission.deadline,
-          eligibility: submission.eligibility,
-          category: submission.category,
-          is_free: submission.is_free,
-          link: submission.link,
-          featured: false
-        });
+      console.log("Submission data:", submission);
 
-      if (insertError) throw insertError;
+      // Insert into opportunities table
+      const opportunityData = {
+        title: submission.title,
+        description: submission.description,
+        deadline: submission.deadline || submission.date, // Handle both field names
+        eligibility: submission.eligibility || "",
+        category: submission.category || "other",
+        is_free: submission.is_free === true,
+        link: submission.link || "",
+        featured: false
+      };
+
+      console.log("Creating opportunity with data:", opportunityData);
+
+      const { data: newOpportunity, error: insertError } = await supabase
+        .from('opportunities')
+        .insert(opportunityData)
+        .select();
+
+      if (insertError) {
+        console.error("Error inserting opportunity:", insertError);
+        throw insertError;
+      }
+
+      console.log("New opportunity created:", newOpportunity);
 
       // Delete from submissions table
       const { error: deleteError } = await supabase
@@ -194,6 +208,7 @@ export default function OpportunitiesPage() {
         description: "Opportunity has been approved and published.",
       });
     } catch (error: any) {
+      console.error("Full error details:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -317,8 +332,14 @@ export default function OpportunitiesPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-gray-500">
+                                            <p>description: {opportunity.description}</p>
+                      <p>Category: {opportunity.category}</p>
+                      <p>Deadline: {new Date(opportunity.deadline).toLocaleDateString()}</p>
+                      <p>Eligibility: {opportunity.eligibility}</p>
                       <p>Submitted by: {opportunity.submitter_name}</p>
                       <p>Submitted on: {new Date(opportunity.created_at).toLocaleDateString()}</p>
+                      <p>Email: {opportunity.submitter_email}</p>
+                      <p>Link: {opportunity.link}</p>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end gap-2">

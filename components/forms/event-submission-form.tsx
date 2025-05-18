@@ -72,33 +72,67 @@ export default function EventSubmissionForm() {
     }
     
     try {
-      const dateTimeString = `${eventForm.date}T${eventForm.time}`
-      const localDate = new Date(dateTimeString)
+      // Format the time properly - make sure it's in 24h format (HH:MM)
+      let formattedTime = eventForm.time;
       
-      if (isNaN(localDate.getTime())) {
+      // Check if the time is in the correct format (HH:MM or HH:MM AM/PM)
+      if (!formattedTime.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+        // Try to handle AM/PM format
+        const timeMatch = formattedTime.match(/^([0-1]?[0-9]):([0-5][0-9])\s*(AM|PM|am|pm)$/);
+        if (timeMatch) {
+          let hours = parseInt(timeMatch[1]);
+          const minutes = timeMatch[2];
+          const period = timeMatch[3].toUpperCase();
+          
+          // Convert to 24-hour format
+          if (period === 'PM' && hours < 12) hours += 12;
+          if (period === 'AM' && hours === 12) hours = 0;
+          
+          formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}`;
+        } else {
+          throw new Error("Invalid time format. Please use HH:MM or HH:MM AM/PM format (e.g., 09:00 or 09:00 AM)");
+        }
+      }
+      
+      // For validation only - not sending this to the server
+      const dateForValidation = new Date(`${eventForm.date}T${formattedTime}`);
+      
+      if (isNaN(dateForValidation.getTime())) {
         throw new Error("Invalid date or time format")
       }
 
+      // Store the original user input for time but use validated formats
       const submission = {
         submitter_name: eventForm.name,
         submitter_email: eventForm.email,
         title: eventForm.title,
         description: eventForm.description,
         submission_type: "event",
-        date: eventForm.date,
-        time: eventForm.time,
+        date: eventForm.date, // This is in YYYY-MM-DD format from the date input
+        time: formattedTime, // Store the correctly formatted time
         location: eventForm.location,
         location_type: eventForm.locationType,
         is_free: eventForm.isFree === "free",
-        link: eventForm.link,
+        link: eventForm.link.startsWith("http") ? eventForm.link : `https://${eventForm.link}`,
         status: "pending"
       }
 
-      const { error: submitError } = await supabase
+      console.log("Submitting event:", submission);
+
+      const { data, error: submitError } = await supabase
         .from("submissions")
         .insert([submission])
+        .select();
 
-      if (submitError) throw submitError
+      if (submitError) {
+        console.error("Supabase error:", submitError);
+        throw submitError;
+      }
+
+      console.log("Submission successful:", data);
+
+      // Show success message
+      alert("Event submitted successfully! Thank you for your contribution.");
 
       // Reset form after successful submission
       setEventForm({
@@ -115,6 +149,7 @@ export default function EventSubmissionForm() {
       })
       
     } catch (error: any) {
+      console.error("Submission error:", error);
       setError(error.message || "Failed to submit event")
     } finally {
       setLoading(false)
