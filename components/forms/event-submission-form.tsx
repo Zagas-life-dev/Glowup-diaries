@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { getSupabaseBrowserClient } from "@/lib/supabase"
+import { toast } from "sonner"
 
 interface EventFormData {
   name: string
@@ -19,9 +20,10 @@ interface EventFormData {
   date: string
   time: string
   location: string
-  locationType: string
-  isFree: string
+  location_type: string
+  is_free: boolean
   link: string
+  status: string
 }
 
 export default function EventSubmissionForm() {
@@ -37,9 +39,10 @@ export default function EventSubmissionForm() {
     date: "",
     time: "",
     location: "",
-    locationType: "online",
-    isFree: "free",
-    link: ""
+    location_type: "online",
+    is_free: true,
+    link: "",
+    status: "pending"
   })
 
   const handleEventChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -101,27 +104,27 @@ export default function EventSubmissionForm() {
         throw new Error("Invalid date or time format")
       }
 
-      // Store the original user input for time but use validated formats
-      const submission = {
+      // Prepare the event submission data
+      const submittedEvent = {
         submitter_name: eventForm.name,
         submitter_email: eventForm.email,
         title: eventForm.title,
         description: eventForm.description,
-        submission_type: "event",
-        date: eventForm.date, // This is in YYYY-MM-DD format from the date input
-        time: formattedTime, // Store the correctly formatted time
+        date: eventForm.date,
+        time: formattedTime,
         location: eventForm.location,
-        location_type: eventForm.locationType,
-        is_free: eventForm.isFree === "free",
+        location_type: eventForm.location_type,
+        is_free: eventForm.is_free,
         link: eventForm.link.startsWith("http") ? eventForm.link : `https://${eventForm.link}`,
         status: "pending"
       }
 
-      console.log("Submitting event:", submission);
+      console.log("Submitting event:", submittedEvent);
 
+      // Insert into the new submitted_events table
       const { data, error: submitError } = await supabase
-        .from("submissions")
-        .insert([submission])
+        .from("submitted_events")
+        .insert([submittedEvent])
         .select();
 
       if (submitError) {
@@ -131,8 +134,10 @@ export default function EventSubmissionForm() {
 
       console.log("Submission successful:", data);
 
-      // Show success message
-      alert("Event submitted successfully! Thank you for your contribution.");
+      // Show success message using Sonner toast
+      toast.success("Event submitted successfully!", {
+        description: "Thank you for your contribution. Our team will review it shortly."
+      });
 
       // Reset form after successful submission
       setEventForm({
@@ -143,14 +148,18 @@ export default function EventSubmissionForm() {
         date: "",
         time: "",
         location: "",
-        locationType: "online",
-        isFree: "free",
+        location_type: "online",
+        is_free: true,
         link: "",
-      })
+        status: "pending"
+      });
       
     } catch (error: any) {
       console.error("Submission error:", error);
-      setError(error.message || "Failed to submit event")
+      setError(error.message || "Failed to submit event");
+      toast.error("Error submitting event", {
+        description: error.message || "Please try again later."
+      });
     } finally {
       setLoading(false)
     }
@@ -206,7 +215,7 @@ export default function EventSubmissionForm() {
               value={eventForm.title}
               onChange={handleEventChange}
               placeholder="Title of your event"
-              required
+                required
             />
           </div>
 
@@ -266,8 +275,8 @@ export default function EventSubmissionForm() {
             <div className="space-y-2">
               <Label>Location Type</Label>
               <RadioGroup
-                value={eventForm.locationType}
-                onValueChange={(value) => setEventForm((prev) => ({ ...prev, locationType: value }))}
+                value={eventForm.location_type}
+                onValueChange={(value) => setEventForm((prev) => ({ ...prev, location_type: value }))}
                 className="flex flex-col space-y-1"
               >
                 <div className="flex items-center space-x-2">
@@ -288,8 +297,11 @@ export default function EventSubmissionForm() {
             <div className="space-y-2">
               <Label>Is it Free or Paid?</Label>
               <RadioGroup
-                value={eventForm.isFree}
-                onValueChange={(value) => setEventForm((prev) => ({ ...prev, isFree: value }))}
+                value={eventForm.is_free ? "free" : "paid"}
+                onValueChange={(value) => setEventForm((prev) => ({ 
+                  ...prev, 
+                  is_free: value === "free" 
+                }))}
                 className="flex flex-col space-y-1"
               >
                 <div className="flex items-center space-x-2">
@@ -324,15 +336,15 @@ export default function EventSubmissionForm() {
       </CardContent>
       <CardFooter className="flex flex-col items-start text-sm text-muted-foreground">
         <p>
-            By submitting, you agree to our{" "}
-            <a href="/terms" className="text-blue-500 hover:underline">
-                Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="text-blue-500 hover:underline">
-                Privacy Policy
-            </a>.
-            </p>
+          By submitting, you agree to our{" "}
+          <a href="/terms" className="text-blue-500 hover:underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="text-blue-500 hover:underline">
+            Privacy Policy
+          </a>.
+        </p>
       </CardFooter>
     </Card>
   )

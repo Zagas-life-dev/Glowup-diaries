@@ -6,40 +6,41 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { getSupabaseBrowserClient } from "@/lib/supabase"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 interface OpportunityFormData {
-  name: string
-  email: string
+  submitter_name: string
+  submitter_email: string
   title: string
   description: string
   deadline: string
   eligibility: string
   category: string
-
   link: string
+  status: string
 }
 
 export default function OpportunitySubmissionForm() {
-  const supabase = getSupabaseBrowserClient() // Move to component level
+  const supabase = getSupabaseBrowserClient()
+  const [loading, setLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [opportunityForm, setOpportunityForm] = useState<OpportunityFormData>({
-    name: "",
-    email: "",
+    submitter_name: "",
+    submitter_email: "",
     title: "",
     description: "",
     deadline: "",
     eligibility: "",
     category: "",
     link: "",
+    status: "pending"
   })
 
   const handleOpportunityChange = (
@@ -61,8 +62,8 @@ export default function OpportunitySubmissionForm() {
 
   const checkOpportunityFormValidity = () => {
     return (
-      opportunityForm.name.trim() !== "" &&
-      opportunityForm.email.trim() !== "" &&
+      opportunityForm.submitter_name.trim() !== "" &&
+      opportunityForm.submitter_email.trim() !== "" &&
       opportunityForm.title.trim() !== "" &&
       opportunityForm.description.trim() !== "" &&
       opportunityForm.deadline.trim() !== "" &&
@@ -74,70 +75,63 @@ export default function OpportunitySubmissionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', opportunityForm) // Add logging
+    setLoading(true)
+    console.log('Form submitted:', opportunityForm)
     
     if (!checkOpportunityFormValidity()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please fill in all required fields",
+      toast.error("Missing information", {
+        description: "Please fill in all required fields"
       })
+      setLoading(false)
       return
     }
     
     try {
-      // Create the submission object
+      // Prepare the submission with proper link formatting
       const submission = {
-        submitter_name: opportunityForm.name,
-        submitter_email: opportunityForm.email,
-        title: opportunityForm.title,
-        description: opportunityForm.description,
-        submission_type: "opportunity",
-        deadline: opportunityForm.deadline,
-        eligibility: opportunityForm.eligibility,
-        category: opportunityForm.category,
-        link: opportunityForm.link,
-        status: "pending"
+        ...opportunityForm,
+        link: opportunityForm.link.startsWith("http") ? opportunityForm.link : `https://${opportunityForm.link}`
       }
 
-      console.log('Submitting to Supabase:', submission) // Add logging
+      console.log('Submitting to Supabase:', submission)
 
+      // Insert into the new submitted_opportunities table
       const { data, error } = await supabase
-        .from("submissions")
+        .from("submitted_opportunities")
         .insert([submission])
-        .select() // Add select to confirm insertion
+        .select()
 
       if (error) {
-        console.error('Supabase error:', error) // Add detailed error logging
+        console.error('Supabase error:', error)
         throw error
       }
 
-      console.log('Submission successful:', data) // Add success logging
+      console.log('Submission successful:', data)
 
-      toast({
-        title: "Success",
-        description: "Thank you for submitting your opportunity! It will be reviewed by our team.",
+      toast.success("Opportunity submitted", {
+        description: "Thank you for submitting your opportunity! It will be reviewed by our team."
       })
       
       // Reset form
       setOpportunityForm({
-        name: "",
-        email: "",
+        submitter_name: "",
+        submitter_email: "",
         title: "",
         description: "",
         deadline: "",
         eligibility: "",
         category: "",
-        link: ""
+        link: "",
+        status: "pending"
       })
       setSelectedDate(undefined)
     } catch (error: any) {
-      console.error('Submission error details:', error) // Add detailed error logging
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to submit opportunity",
+      console.error('Submission error details:', error)
+      toast.error("Submission failed", {
+        description: error.message || "Failed to submit opportunity. Please try again."
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -153,23 +147,23 @@ export default function OpportunitySubmissionForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="opp-name">Your Name</Label>
+              <Label htmlFor="submitter_name">Your Name</Label>
               <Input
-                id="opp-name"
-                name="name"
-                value={opportunityForm.name}
+                id="submitter_name"
+                name="submitter_name"
+                value={opportunityForm.submitter_name}
                 onChange={handleOpportunityChange}
                 placeholder="Your full name"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="opp-email">Your Email</Label>
+              <Label htmlFor="submitter_email">Your Email</Label>
               <Input
-                id="opp-email"
-                name="email"
+                id="submitter_email"
+                name="submitter_email"
                 type="email"
-                value={opportunityForm.email}
+                value={opportunityForm.submitter_email}
                 onChange={handleOpportunityChange}
                 placeholder="Your email address"
                 required
@@ -178,9 +172,9 @@ export default function OpportunitySubmissionForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="opp-title">Opportunity Title</Label>
+            <Label htmlFor="title">Opportunity Title</Label>
             <Input
-              id="opp-title"
+              id="title"
               name="title"
               value={opportunityForm.title}
               onChange={handleOpportunityChange}
@@ -190,9 +184,9 @@ export default function OpportunitySubmissionForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="opp-description">Opportunity Description</Label>
+            <Label htmlFor="description">Opportunity Description</Label>
             <Textarea
-              id="opp-description"
+              id="description"
               name="description"
               value={opportunityForm.description}
               onChange={handleOpportunityChange}
@@ -229,9 +223,9 @@ export default function OpportunitySubmissionForm() {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="opp-eligibility">Eligibility</Label>
+              <Label htmlFor="eligibility">Eligibility</Label>
               <Input
-                id="opp-eligibility"
+                id="eligibility"
                 name="eligibility"
                 value={opportunityForm.eligibility}
                 onChange={handleOpportunityChange}
@@ -243,12 +237,12 @@ export default function OpportunitySubmissionForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="opp-category">Category</Label>
+              <Label htmlFor="category">Category</Label>
               <Select
                 value={opportunityForm.category}
                 onValueChange={(value) => setOpportunityForm((prev) => ({ ...prev, category: value }))}
               >
-                <SelectTrigger id="opp-category">
+                <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -256,32 +250,29 @@ export default function OpportunitySubmissionForm() {
                   <SelectItem value="fellowship">Fellowship</SelectItem>
                   <SelectItem value="internship">Internship</SelectItem>
                   <SelectItem value="job">Job</SelectItem>
-                  <SelectItem value="contest">Contest</SelectItem>
+                  <SelectItem value="competition">Competition</SelectItem>
                   <SelectItem value="grant">Grant</SelectItem>
-                  <SelectItem value="accelerator">Accelerator</SelectItem>
+                  <SelectItem value="mentorship">Mentorship</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-            <Label htmlFor="opp-link">Application/Info Link</Label>
-            <Input
-              id="opp-link"
-              name="link"
-              type="url"
-              value={opportunityForm.link}
-              onChange={handleOpportunityChange}
-              placeholder="https://..."
-              required
-            />
+              <Label htmlFor="link">Application/Info Link</Label>
+              <Input
+                id="link"
+                name="link"
+                type="url"
+                value={opportunityForm.link}
+                onChange={handleOpportunityChange}
+                placeholder="https://..."
+                required
+              />
+            </div>
           </div>
-            
-          </div>
 
-
-
-          <Button type="submit" className="w-full">
-            Submit Opportunity
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Submitting..." : "Submit Opportunity"}
           </Button>
         </form>
       </CardContent>
