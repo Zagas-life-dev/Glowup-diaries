@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 
-const LoginSignupPage = () => {
+const LoginSignupPageInner = () => {
   const searchParams = useSearchParams();
   const errorType = searchParams.get("error");
   const supabase = createClientComponentClient();
@@ -165,5 +165,11 @@ const LoginSignupPage = () => {
     </div>
   );
 };
+
+const LoginSignupPage = () => (
+  <Suspense>
+    <LoginSignupPageInner />
+  </Suspense>
+);
 
 export default LoginSignupPage;
