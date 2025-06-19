@@ -4,14 +4,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Calendar, MapPin, Clock, Users } from "lucide-react"
 
 interface FeaturedCardProps {
-  type: "Event" | "Opportunity"
+  type: "Event" | "Opportunity" | "Resources" | "Jobs"
   title: string
   description: string
   date?: string
   location?: string
   deadline?: string
   eligibility?: string
-  isFree: boolean
+  isFree?: boolean // Only for Event
   link: string
 }
 
@@ -36,12 +36,14 @@ export default function FeaturedCard({
           >
             {type}
           </Badge>
-          <Badge
-            variant={isFree ? "outline" : "secondary"}
-            className={isFree ? "border-brand-orange text-brand-orange" : "bg-gray-200 text-gray-800"}
-          >
-            {isFree ? "Free" : "Paid"}
-          </Badge>
+          {type === "Event" && (
+            <Badge
+              variant={isFree ? "outline" : "secondary"}
+              className={isFree ? "border-brand-orange text-brand-orange" : "bg-gray-200 text-gray-800"}
+            >
+              {isFree ? "Free" : "Paid"}
+            </Badge>
+          )}
         </div>
         <CardTitle className="mt-2 text-lg font-semibold break-words hyphens-auto">
           {title}
@@ -68,7 +70,6 @@ export default function FeaturedCard({
               )}
             </>
           )}
-
           {type === "Opportunity" && (
             <>
               {deadline && (
@@ -94,7 +95,7 @@ export default function FeaturedCard({
           target="_blank"
           rel="noopener noreferrer"
         >
-          {type === "Event" ? "Register Now" : "Apply Now"} →
+          {type === "Event" ? "Register Now" : type === "Opportunity" ? "Apply Now" : "View Resource"} →
         </Link>
       </CardFooter>
     </Card>

@@ -17,7 +17,6 @@ interface Resource {
   description: string
   category: string
   is_premium: boolean
-  price: number
   featured: boolean
   file_url: string
   created_at: string
@@ -216,7 +215,7 @@ export default function ResourcesPage() {
                   <CardContent className="flex-grow">
                     <div className="space-y-2">
                       <Badge variant={resource.is_premium ? "secondary" : "outline"} className="mb-2">
-                        {resource.is_premium ? `Premium - ₦ ${resource.price}` : "Free"}
+                        {resource.is_premium ? "Premium" : "Free"}
                       </Badge>
                     </div>
                   </CardContent>

@@ -29,16 +29,21 @@ async function getFeaturedItems() {
     .select('*')
     .eq('featured', true)
     .order('created_at', { ascending: false })
-
+  const { data: jobs } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('featured', true)
+    .order('created_at', { ascending: false })
   return {
     events: events || [],
     opportunities: opportunities || [],
-    resources: resources || []
+    resources: resources || [],
+    jobs: jobs || []
   }
 }
 
 export default async function Home() {
-  const { events, opportunities, resources } = await getFeaturedItems()
+  const { events, opportunities, resources, jobs } = await getFeaturedItems()
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -126,7 +131,6 @@ export default async function Home() {
                 link={event.link || `#`}
               />
             ))}
-            
             {opportunities.map((opportunity) => (
               <FeaturedCard
                 key={opportunity.id}
@@ -135,18 +139,27 @@ export default async function Home() {
                 description={opportunity.description}
                 deadline={opportunity.deadline}
                 eligibility={opportunity.eligibility}
-                isFree={opportunity.is_free}
                 link={opportunity.link || `#`}
               />
             ))}
-            
+
+            {jobs.map((job) => (
+              <FeaturedCard
+                key={job.id}
+                type="Jobs"
+                title={job.title}
+                description={job.description}
+                location={job.location}
+                link={job.link || `#`}
+              />
+            ))}
+
             {resources.map((resource) => (
               <FeaturedCard
                 key={resource.id}
-                type="Opportunity"
+                type="Resources"
                 title={resource.title}
                 description={resource.description}
-                isFree={!resource.is_premium}
                 link={resource.link || `#`}
               />
             ))}
@@ -174,7 +187,10 @@ export default async function Home() {
                 size="lg"
                 className="border-brand-orange text-brand-orange bg-black hover:bg-black/90"
               >
-                <Link href="/contact">Join Our Community</Link>
+                <Link href="https://whatsapp.com/channel/0029Vanm1p0InlqII9gDQl0i">Join Our Community</Link>
+              </Button>
+              <Button asChild size="lg" className="px-16 bg-brand-orange hover:bg-brand-orange/90 text-white">
+                <Link href="/contact">Contact Us</Link>
               </Button>
             </div>
           </div>
