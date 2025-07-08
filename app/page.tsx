@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Calendar, Lightbulb, Plane } from "lucide-react"
+import { Calendar, Lightbulb, Plane, Briefcase } from "lucide-react"
 import FeaturedCard from "@/components/featured-card"
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
@@ -61,7 +61,7 @@ export default async function Home() {
             </p>
 
             {/* Quick Search Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 w-full max-w-3xl">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8 w-full max-w-3xl">
               <Button
                 asChild
                 variant="outline"
@@ -81,6 +81,17 @@ export default async function Home() {
                 <Link href="/opportunities" className="flex flex-col items-center justify-center space-y-2">
                   <Plane className="h-6 w-6 text-brand-orange" />
                   <span>Explore Opportunities</span>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                className="h-20 card-hover border-brand-orange text-brand-orange bg-black hover:bg-black/90"
+              >
+                <Link href="/jobs" className="flex flex-col items-center justify-center space-y-2">
+                  <Briefcase className="h-6 w-6 text-brand-orange" />
+                  <span>Find Jobs</span>
                 </Link>
               </Button>
 
